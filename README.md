@@ -1,26 +1,28 @@
 # AI Study Buddy
 
-**A full-stack research apparatus for comparing text-based and embodied-avatar AI tutors.**
+**A chatbot would have been the easy part. I built the full study platform around it.**
 
 `Human-AI Interaction` · `Experimental Software` · `TypeScript` · `React` · `Supabase` · `Embodied AI`
 
 | Context | My role | Study design | Public scope |
 |---|---|---|---|
-| Student research project at the Technical University of Munich | Technical and product lead | 30-participant comparison of two AI-tutor conditions | Apparatus, methodology and de-identified interface views |
+| Course project for Human-AI Interaction at the Technical University of Munich | Technical and product lead | 30-participant comparison of two AI-tutor conditions | Study platform, methodology and de-identified interface views |
 
 ![Participant entry to the AI Study Buddy experiment](media/participant-entry.png)
 
-## Research question
+## The question behind the interface
 
 How does the experience of learning with an AI tutor change when a familiar chat interface is replaced by an embodied, speaking avatar?
 
-I translated that question into an end-to-end experimental system rather than a standalone interface demo. The platform guides a participant from consent and baseline measurement through one of two tutor conditions, records interaction and timing telemetry, runs the post-test, validates session quality and produces analysis-ready exports.
+The visible comparison was simple: text tutor or speaking avatar. The actual research problem was harder. Both experiences had to teach the same material, survive real participant sessions and leave enough evidence to compare them honestly.
 
-The study examined **trust, engagement and learning** in an AI-literacy task. Across the complete cohort, correct understanding of one central AI concept rose from **23% before learning to 95% afterward**. This is a descriptive pre/post result across the study, not evidence that the avatar alone caused the change.
+I turned that question into an end-to-end experimental system rather than a standalone interface demo. The platform guides a participant from consent and baseline measurement through one of two tutor conditions, records interaction and timing telemetry, runs the post-test, validates session quality and produces analysis-ready exports.
 
-## Two operationalized conditions
+The study examined **trust, engagement and learning** in an AI-literacy task. Across the complete cohort, correct answers to the CFG-scale question increased from **23% before the learning session to 95% afterward**. This is a descriptive pre/post result across the study, not evidence that the avatar alone caused the change.
 
-The learning material and overall study sequence were shared. The interaction channel was deliberately different.
+## Two tutor experiences, one learning task
+
+Both conditions used the same learning material and overall study sequence, while the interfaces differed in interaction modality, provider behavior and presentation.
 
 | Text tutor | Embodied-avatar tutor |
 |---|---|
@@ -36,11 +38,11 @@ The learning material and overall study sequence were shared. The interaction ch
 
 ![Embodied-avatar tutor condition](media/avatar-tutor-condition.png)
 
-The comparison is intentionally described as **text tutor versus embodied-avatar tutor**, not as a perfectly isolated embodiment variable. Voice, provider behavior and parts of the interface also differ between the conditions; those differences belong to the operationalization and therefore to the interpretation.
+I describe this as **text tutor versus embodied-avatar tutor**, not as a perfectly isolated test of embodiment. Voice, provider behavior and parts of the interface changed too. Pretending otherwise would make the conclusion cleaner, but not more true.
 
-## What I built
+## A chatbot was the easy part
 
-The engineering work extended well beyond placing an LLM behind a chat box.
+Putting an LLM behind a chat panel was not the interesting engineering problem. Making the whole study survive real participants was.
 
 1. Present study information, informed consent and age eligibility.
 2. Record demographics and a pre-test baseline.
@@ -51,7 +53,7 @@ The engineering work extended well beyond placing an LLM behind a chat box.
 7. Detect incomplete or suspicious sessions and require researcher validation.
 8. Export filtered CSV, JSON and PDF artifacts for independent analysis.
 
-This created one traceable path from the participant-facing experience to the final research dataset. A screen transition was never treated as proof that data had been saved: study actions use explicit server operations, while failed writes enter a bounded retry path with diagnostic metadata.
+This created one traceable path from the participant-facing experience to the final research dataset. For critical study writes, moving to the next screen was not treated as proof that data had been saved. The platform uses explicit server operations and a bounded retry path with diagnostic metadata.
 
 | Consent | Baseline | Experience assessment | Knowledge check |
 |---|---|---|---|
@@ -59,19 +61,19 @@ This created one traceable path from the participant-facing experience to the fi
 
 *One continuous study flow: informed consent, baseline measurement, the assigned learning condition, experience ratings and a post-test knowledge check.*
 
-## System architecture
+## What runs underneath
 
 - **React, TypeScript and Vite** implement the participant flow and researcher dashboard.
 - **Supabase Postgres** stores study sessions, answers, timing records, dialogue turns and validation state.
 - **Supabase Auth and role checks** separate participant, researcher, mentor and owner workflows.
-- **Deno Edge Functions** mediate writes and external AI-service calls.
+- **Deno Edge Functions** mediate participant-data writes and external AI-service calls.
 - **An OpenAI-compatible streaming endpoint** powers the text tutor.
 - **Anam AI** provides the real-time embodied avatar, speech pipeline and transcript events.
 - **A separate image-generation service** supports an optional prompt playground inside both learning conditions.
 
 The architecture separates study state from service state. If an external tutor or avatar session fails, the experimental record still has an explicit status and the researcher can distinguish a technical interruption from a completed response.
 
-## Instrumentation and research operations
+## Keeping the study measurable
 
 Each session receives a random identifier. The platform records answers, timestamps, page and slide durations, tutor dialogue, completion state and validation decisions. Participant names and email addresses are not part of the study flow.
 
@@ -91,13 +93,13 @@ The researcher dashboard supports:
 
 That distinction between **recorded sessions** and the **validated sample used for a specific statistic** was a core product requirement. It prevents an attractive dashboard number from silently becoming the study's source of truth.
 
-## Data quality and analytical boundaries
+## Where the experiment could lie to us
 
 The apparatus supports condition-specific entry links, while a manual condition-selection route also exists. A rigorous deployment must document which route was used and how assignment was controlled.
 
 Time correlations in a small validated subset are exploratory. They can generate hypotheses, but they do not show that session duration or avatar exposure caused a learning outcome. Likewise, the 23% to 95% knowledge result demonstrates learning across the complete experience; it does not identify which interface component produced it.
 
-These boundaries are documented in the portfolio because reliable research software must preserve not only data, but also the meaning and limits of the data it produces.
+I kept these limitations explicit because the dashboard is only useful when its numbers remain interpretable.
 
 ## Privacy
 
@@ -112,18 +114,12 @@ These boundaries are documented in the portfolio because reliable research softw
 
 As technical and product lead in a five-person student team, I translated the study concept into the system architecture and implemented the platform end to end. My work covered the participant experience, tutor integration, database model, server functions, telemetry, research dashboard, validation workflow, exports, deployment and operational debugging during the study.
 
-The remaining team members focused on research framing, study materials, analysis, reporting and media. This distinction matters: the platform was collaborative research, while my primary ownership was the technical apparatus and its operation.
+The remaining team members focused on research framing, study materials, analysis, reporting and media. This distinction matters: the platform was collaborative research, while my primary ownership was the technical system and its operation.
 
-## Why it matters for immersive research engineering
+## Why this matters for immersive research
 
 AI Study Buddy is not a VR application. Its relevance to immersive research lies in the infrastructure behind the interface: controlled participant flows, multimodal integration, instrumentation, failure handling, data provenance and explicit threats to validity. The same concerns determine whether a VR environment is only a convincing demo or a dependable experimental apparatus.
 
 ## Public scope
 
 This repository is a portfolio case study. Production source code, backend configuration, service credentials and participant-level data are intentionally not published. The public repository was created as a clean documentation snapshot; it is not a mirror of the private development history.
-
-## Author
-
-**Jakub Majewski**
-
-[github.com/jacobemanuel](https://github.com/jacobemanuel)
