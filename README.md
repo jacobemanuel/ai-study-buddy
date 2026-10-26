@@ -1,6 +1,6 @@
 # AI Study Buddy
 
-**A chatbot would have been the easy part. I built the whole study platform around it.**
+A platform for a user study that compares an AI text tutor with a speaking avatar tutor. I built it end to end as technical and product lead in a five-person student team.
 
 `Human-AI Interaction` · `Experimental Software` · `TypeScript` · `React` · `Supabase` · `Embodied AI`
 
@@ -10,13 +10,13 @@
 
 ![Participant entry to the AI Study Buddy experiment](media/participant-entry.png)
 
-## The question behind the interface
+## Research question
 
-How does the experience of learning with an AI tutor change when you replace a familiar chat interface with an embodied avatar that speaks?
+How does the experience of learning with an AI tutor change when a familiar chat interface is replaced by an embodied avatar that speaks?
 
-On the surface the comparison was simple. Text tutor or speaking avatar. The actual research problem was harder. Both experiences had to teach the same material and survive real participant sessions. They also had to leave enough evidence behind to compare them honestly.
+Both tutors had to teach the same material, work in real participant sessions and record enough data for a fair comparison.
 
-So I turned that question into an end-to-end experimental system instead of a standalone interface demo. The platform takes a participant from consent and baseline measurement through one of two tutor conditions. It records interaction and timing telemetry and runs the post-test. It also checks session quality and produces analysis-ready exports.
+I built an end-to-end study platform for it. It takes a participant from consent and a baseline test through one of the two tutor conditions to the post-test. It records interaction and timing data, checks session quality and produces exports for analysis.
 
 The study looked at **trust, engagement and learning** in an AI-literacy task. Correct answers to the CFG-scale question went up from **23% before the learning session to 95% afterward** across the complete cohort. That's a descriptive pre/post result for the whole study. It doesn't show that the avatar alone caused the change.
 
@@ -38,11 +38,11 @@ Both conditions used the same learning material and the same overall study seque
 
 ![Embodied-avatar tutor condition](media/avatar-tutor-condition.png)
 
-I call this **text tutor versus embodied-avatar tutor**. It isn't a perfectly isolated test of embodiment. Voice, provider behavior and parts of the interface changed too. Pretending otherwise would make the conclusion cleaner. It wouldn't make it more true.
+I call this **text tutor versus embodied-avatar tutor** because it isn't an isolated test of embodiment. Voice, provider behavior and parts of the interface changed too.
 
-## A chatbot was the easy part
+## Study flow
 
-Putting an LLM behind a chat panel was the easy bit. The interesting engineering problem was making the whole study survive real participants.
+The platform runs the whole study:
 
 1. Show study information, informed consent and age eligibility.
 2. Record demographics and a pre-test baseline.
@@ -53,7 +53,7 @@ Putting an LLM behind a chat panel was the easy bit. The interesting engineering
 7. Detect incomplete or suspicious sessions and require a researcher to validate them.
 8. Export filtered CSV, JSON and PDF artifacts for independent analysis.
 
-The result was one traceable path from the participant-facing experience to the final research dataset. For critical study writes, moving on to the next screen didn't count as proof that the data was saved. Instead the platform uses explicit server operations and a bounded retry path with diagnostic metadata.
+Every step can be traced from the participant's screen to the final dataset. Critical study writes go through explicit server operations with a bounded retry path and diagnostic metadata, so moving on to the next screen never counts as proof that the data was saved.
 
 | Consent | Baseline | Experience assessment | Knowledge check |
 |---|---|---|---|
@@ -61,7 +61,7 @@ The result was one traceable path from the participant-facing experience to the 
 
 *One continuous study flow: informed consent, baseline measurement, the assigned learning condition, experience ratings and a post-test knowledge check.*
 
-## What runs underneath
+## Stack
 
 - **React, TypeScript and Vite** for the participant flow and the researcher dashboard.
 - **Supabase Postgres** stores study sessions, answers, timing records, dialogue turns and validation state.
@@ -91,13 +91,13 @@ The researcher dashboard supports:
 
 *The dashboard view is an aggregate research snapshot that depends on the filters. The validated sample can differ from statistic to statistic after completion checks, exclusions and missing-data rules.*
 
-Telling **recorded sessions** apart from the **validated sample used for a specific statistic** was a core product requirement. It stops a nice-looking dashboard number from quietly becoming the study's source of truth.
+Telling **recorded sessions** apart from the **validated sample used for a specific statistic** was a core requirement, so a dashboard number can't be mistaken for a validated result.
 
-## Where the experiment could lie to us
+## Limitations
 
 The apparatus supports condition-specific entry links. There's also a manual condition-selection route. A rigorous deployment has to document which route was used and how assignment was controlled.
 
-Time correlations in a small validated subset are exploratory. They can generate hypotheses. They don't show that session duration or avatar exposure caused a learning outcome. The same goes for the 23% to 95% knowledge result, which shows learning across the complete experience. It doesn't tell you which interface component produced it.
+Time correlations in a small validated subset are exploratory. They can generate hypotheses. They don't show that session duration or avatar exposure caused a learning outcome. The same goes for the 23% to 95% knowledge result, which shows learning across the complete experience. It doesn't show which interface component produced it.
 
 I kept these limitations explicit because the dashboard is only useful when its numbers stay interpretable.
 
@@ -114,11 +114,11 @@ I kept these limitations explicit because the dashboard is only useful when its 
 
 I was the technical and product lead in a five-person student team. I turned the study concept into the system architecture and built the platform end to end. My work covered the participant experience, tutor integration, database model, server functions, telemetry, research dashboard, validation workflow, exports and deployment. It also included operational debugging during the study.
 
-The rest of the team focused on research framing, study materials, analysis, reporting and media. This distinction matters. The platform was collaborative research. What I mainly owned was the technical system and its operation.
+The rest of the team worked on research framing, study materials, analysis, reporting and media. The study was a team effort and my part was the technical system and running it.
 
-## Why this matters for immersive research
+## Relevance to immersive research
 
-AI Study Buddy isn't a VR application. What makes it relevant to immersive research is the infrastructure behind the interface: controlled participant flows, multimodal integration, instrumentation, failure handling, data provenance and explicit threats to validity. The same concerns decide whether a VR environment is just a convincing demo or a dependable experimental apparatus.
+AI Study Buddy isn't a VR application. The part that carries over to immersive research is the infrastructure: controlled participant flows, multimodal integration, instrumentation, failure handling, data provenance and documented threats to validity. A VR study needs the same.
 
 ## Public scope
 
