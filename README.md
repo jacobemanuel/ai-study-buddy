@@ -91,7 +91,7 @@ The researcher dashboard supports:
 
 ![Research dashboard with aggregate study and data-quality views](media/research-dashboard.png)
 
-*The dashboard view is an aggregate research snapshot that depends on the filters. The validated sample can differ from statistic to statistic after completion checks, exclusions and missing-data rules.*
+*The snapshot uses the "Completed only" filter: 15 completed sessions, 7 with the text tutor and 8 with the avatar. Flagged sessions aren't in it. Eight were excluded after review and three were still waiting for it. The validated sample can differ from statistic to statistic after completion checks, exclusions and missing-data rules.*
 
 Telling **recorded sessions** apart from the **validated sample used for a specific statistic** was a core requirement, so a dashboard number can't be mistaken for a validated result.
 
