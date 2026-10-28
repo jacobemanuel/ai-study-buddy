@@ -124,4 +124,4 @@ AI Study Buddy isn't a VR application. The part that carries over to immersive r
 
 ## Public scope
 
-The platform's code is in [`platform/`](platform/), with 52 tests that run in CI. Participant data, the study's backend project and all service credentials are left out on purpose. The code is a clean snapshot and doesn't mirror the private development history.
+The platform's code is in [`platform/`](platform/), with 54 tests that run in CI. Participant data, the study's backend project and all service credentials are left out on purpose. The code is a clean snapshot and doesn't mirror the private development history.

@@ -25,7 +25,7 @@ npm run typecheck
 npm run build
 ```
 
-The 52 tests cover how study data gets saved and retried, how sessions get flagged, who may do what in the dashboard, and the answer widgets. A smoke test renders the first screens. CI runs all of them on every push.
+The 54 tests cover how study data gets saved and retried, how sessions get flagged, who may do what in the dashboard, and the answer widgets. A smoke test renders the first screens, and two tests build the dashboard's PDF reports from sample data. CI runs all of them on every push.
 
 ## Run it against a backend
 
