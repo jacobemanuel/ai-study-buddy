@@ -2,11 +2,13 @@
 
 A platform for a user study that compares an AI text tutor with a speaking avatar tutor. I built it end to end as technical and product lead in a five-person student team.
 
+[![platform tests](https://github.com/jacobemanuel/ai-study-buddy/actions/workflows/platform-tests.yml/badge.svg)](https://github.com/jacobemanuel/ai-study-buddy/actions/workflows/platform-tests.yml)
+
 `Human-AI Interaction` · `Experimental Software` · `TypeScript` · `React` · `Supabase` · `Embodied AI`
 
 | Context | My role | Study design | Public scope |
 |---|---|---|---|
-| Course project for Human-AI Interaction at the Technical University of Munich | Technical and product lead | 30-participant comparison of two AI-tutor conditions | Study platform, methodology and de-identified interface views |
+| Course project for Human-AI Interaction at the Technical University of Munich | Technical and product lead | 30-participant comparison of two AI-tutor conditions | Platform code with tests in CI, methodology and de-identified interface views |
 
 ![Participant entry to the AI Study Buddy experiment](media/participant-entry.png)
 
@@ -122,4 +124,4 @@ AI Study Buddy isn't a VR application. The part that carries over to immersive r
 
 ## Public scope
 
-This repo is a portfolio case study. Production source code, backend configuration, service credentials and participant-level data are left out on purpose. The public repo was created as a clean documentation snapshot. It doesn't mirror the private development history.
+The platform's code is in [`platform/`](platform/), with 52 tests that run in CI. Participant data, the study's backend project and all service credentials are left out on purpose. The code is a clean snapshot and doesn't mirror the private development history.

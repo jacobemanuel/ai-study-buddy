@@ -1,0 +1,28 @@
+project_id = "your-project-ref"
+
+[functions.save-study-data]
+verify_jwt = false
+
+[functions.complete-session]
+verify_jwt = false
+
+[functions.chat]
+verify_jwt = false
+
+[functions.generate-image]
+verify_jwt = false
+
+[functions.anam-session]
+verify_jwt = false
+
+[functions.create-admin-users]
+verify_jwt = false
+
+[functions.toggle-api]
+verify_jwt = false
+
+[functions.save-avatar-time]
+verify_jwt = false
+
+[functions.owner-edit-session]
+verify_jwt = false

@@ -1,0 +1,334 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Black base with muted TUM blue */
+    --background: 0 0% 0%;
+    --foreground: 210 20% 96%;
+    
+    /* Muted TUM blue primary */
+    --primary: 208 78% 40%;
+    --primary-foreground: 210 40% 98%;
+    --primary-glow: 208 80% 56%;
+    
+    /* Accent family */
+    --ai-primary: 208 78% 40%;
+    --ai-secondary: 208 52% 52%;
+    --ai-accent: 210 14% 58%;
+    --ai-glow: 208 60% 60%;
+    
+    /* Neutral surfaces */
+    --secondary: 220 12% 10%;
+    --secondary-foreground: 210 20% 96%;
+    
+    --muted: 220 10% 16%;
+    --muted-foreground: 215 12% 68%;
+    
+    --accent: 208 52% 52%;
+    --accent-foreground: 220 16% 12%;
+    
+    /* Elevated cards */
+    --card: 220 12% 7%;
+    --card-foreground: 210 20% 96%;
+    
+    --popover: 220 12% 7%;
+    --popover-foreground: 210 20% 96%;
+    
+    --border: 220 12% 18%;
+    --input: 220 12% 18%;
+    --ring: 208 78% 40%;
+    
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --radius: 1rem;
+    
+    /* Subtle gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(208 78% 40%) 0%, hsl(208 52% 52%) 100%);
+    --gradient-ai: linear-gradient(135deg, hsl(208 78% 40%) 0%, hsl(208 52% 52%) 60%, hsl(210 14% 58%) 100%);
+    --gradient-surface: linear-gradient(145deg, hsl(220 10% 10%) 0%, hsl(220 14% 5%) 100%);
+    --gradient-mesh: radial-gradient(at 0% 0%, hsl(208 78% 40% / 0.06) 0px, transparent 50%),
+                      radial-gradient(at 100% 0%, hsl(208 52% 52% / 0.05) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, hsl(210 14% 58% / 0.04) 0px, transparent 50%);
+    
+    /* Shadows with subdued glow */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-subtle: 0 2px 8px -2px rgb(0 0 0 / 0.4), 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-medium: 0 8px 24px -4px rgb(0 0 0 / 0.5), 0 4px 8px rgb(0 0 0 / 0.4);
+    --shadow-large: 0 20px 40px -8px rgb(0 0 0 / 0.6), 0 10px 20px rgb(0 0 0 / 0.5);
+    --shadow-glow: 0 0 60px hsl(208 78% 40% / 0.14), 0 0 30px hsl(208 52% 52% / 0.1);
+    --shadow-ai-glow: 0 0 40px hsl(208 52% 52% / 0.16), 0 0 22px hsl(210 14% 58% / 0.1);
+    --shadow-inset: inset 0 2px 8px rgb(0 0 0 / 0.3);
+    
+    /* 3D elevation effects */
+    --elevation-1: 0 2px 4px rgb(0 0 0 / 0.2);
+    --elevation-2: 0 4px 8px rgb(0 0 0 / 0.3);
+    --elevation-3: 0 8px 16px rgb(0 0 0 / 0.4);
+    
+    /* Slide presentation background */
+    --slide-bg: 220 12% 9%;
+    --slide-border: 220 12% 22%;
+    --slide-shadow: 0 20px 60px rgb(0 0 0 / 0.7), 0 0 80px hsl(208 78% 40% / 0.08);
+  }
+  
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 210 20% 96%;
+    
+    --primary: 208 78% 40%;
+    --primary-foreground: 210 40% 98%;
+    --primary-glow: 208 80% 56%;
+    
+    --ai-primary: 208 78% 40%;
+    --ai-secondary: 208 52% 52%;
+    --ai-accent: 210 14% 58%;
+    --ai-glow: 208 60% 60%;
+    
+    --secondary: 220 12% 10%;
+    --secondary-foreground: 210 20% 96%;
+    
+    --muted: 220 10% 14%;
+    --muted-foreground: 215 12% 68%;
+    
+    --accent: 208 52% 52%;
+    --accent-foreground: 220 16% 12%;
+    
+    --card: 220 12% 7%;
+    --card-foreground: 210 20% 96%;
+    
+    --popover: 220 12% 7%;
+    --popover-foreground: 210 20% 96%;
+    
+    --border: 220 12% 18%;
+    --input: 220 12% 18%;
+    --ring: 208 78% 40%;
+    
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(208 78% 40%) 0%, hsl(208 52% 52%) 100%);
+    --gradient-ai: linear-gradient(135deg, hsl(208 78% 40%) 0%, hsl(208 52% 52%) 60%, hsl(210 14% 58%) 100%);
+    --gradient-surface: linear-gradient(145deg, hsl(220 10% 10%) 0%, hsl(220 14% 5%) 100%);
+    --gradient-mesh: radial-gradient(at 0% 0%, hsl(208 78% 40% / 0.05) 0px, transparent 50%),
+                      radial-gradient(at 100% 0%, hsl(208 52% 52% / 0.04) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, hsl(210 14% 58% / 0.03) 0px, transparent 50%);
+    
+    --slide-bg: 220 12% 9%;
+    --slide-border: 220 12% 22%;
+    --slide-shadow: 0 20px 60px rgb(0 0 0 / 0.72), 0 0 80px hsl(208 78% 40% / 0.08);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  
+  /* Smooth 3D-style interactions */
+  button, a, input, textarea {
+    transition: var(--transition-smooth);
+  }
+  
+  /* Enhanced focus states with depth */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+}
+
+/* Modern AI-themed utility classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .shadow-subtle {
+    box-shadow: var(--shadow-subtle);
+  }
+  
+  .shadow-medium {
+    box-shadow: var(--shadow-medium);
+  }
+  
+  .shadow-large {
+    box-shadow: var(--shadow-large);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .shadow-ai-glow {
+    box-shadow: var(--shadow-ai-glow);
+  }
+  
+  .shadow-inset {
+    box-shadow: var(--shadow-inset);
+  }
+  
+  .elevation-1 {
+    box-shadow: var(--elevation-1);
+  }
+  
+  .elevation-2 {
+    box-shadow: var(--elevation-2);
+  }
+  
+  .elevation-3 {
+    box-shadow: var(--elevation-3);
+  }
+  
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-ai {
+    background: var(--gradient-ai);
+  }
+  
+  .gradient-surface {
+    background: var(--gradient-surface);
+  }
+  
+  .gradient-mesh {
+    background: var(--gradient-mesh);
+  }
+  
+  /* Enhanced AI-themed glass-morphism */
+  .glass-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 12px 40px hsl(208 78% 40% / 0.16),
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+  
+  .dark .glass-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  
+  .dark .glass-card:hover {
+    box-shadow: 
+      0 12px 40px hsl(208 78% 40% / 0.2),
+      0 8px 32px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  /* AI Pulse effect */
+  .pulse-ai {
+    animation: pulse-ai 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulse-ai {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.02);
+    }
+  }
+  
+  /* 3D button effects */
+  .btn-3d {
+    position: relative;
+    transform: translateY(0);
+    box-shadow: 
+      0 4px 8px rgba(0, 0, 0, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .btn-3d:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 6px 12px rgba(0, 0, 0, 0.4),
+      0 3px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  .btn-3d:active {
+    transform: translateY(1px);
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Elevated card effect */
+  .card-elevated {
+    background: var(--gradient-surface);
+    box-shadow: var(--shadow-medium);
+    border: 1px solid hsl(var(--border));
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card-elevated:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-large);
+  }
+  
+  .card-elevated::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.1), transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  
+  /* Smooth fade in animation */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Staggered fade in for lists */
+  .stagger-fade-in > * {
+    animation: fadeIn 0.5s ease-out backwards;
+  }
+  
+  .stagger-fade-in > *:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-fade-in > *:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-fade-in > *:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-fade-in > *:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-fade-in > *:nth-child(5) { animation-delay: 0.5s; }
+}

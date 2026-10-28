@@ -1,0 +1,495 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Zap, ZapOff, Shield, Loader2, Key, Save, Eye, EyeOff, Power, AlertTriangle } from "lucide-react";
+
+interface ApiToggleProps {
+  userEmail: string;
+}
+
+interface ApiSettings {
+  api_enabled?: { enabled: boolean; updated_at?: string; updated_by?: string };
+  openai_api_enabled?: { enabled: boolean; updated_at?: string; updated_by?: string };
+  anam_api_enabled?: { enabled: boolean; updated_at?: string; updated_by?: string };
+  anam_api_key?: { key: string; updated_at?: string; updated_by?: string };
+}
+
+const ApiToggle = ({ userEmail }: ApiToggleProps) => {
+  const [settings, setSettings] = useState<ApiSettings>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isToggling, setIsToggling] = useState<string | null>(null);
+  const [newApiKey, setNewApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [isSavingKey, setIsSavingKey] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [isTestingKey, setIsTestingKey] = useState(false);
+  const [lastKeyTest, setLastKeyTest] = useState<{ status: 'success' | 'error'; at: string } | null>(null);
+
+  const fetchStatus = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase.functions.invoke('toggle-api', {
+        body: { action: 'get' }
+      });
+
+      if (error) throw error;
+      setSettings(data.settings || {});
+      setIsOwner(data.isOwner || false);
+    } catch (error) {
+      console.error('Error fetching API status:', error);
+      toast.error('Failed to fetch API status');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatus();
+
+    // Subscribe to real-time changes on app_settings table
+    const channel = supabase
+      .channel('api-settings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'app_settings',
+        },
+        (payload) => {
+          console.log('Settings changed:', payload);
+          // Refetch settings when any change occurs
+          fetchStatus();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const handleToggle = async (apiType: 'master' | 'openai' | 'anam') => {
+    setIsToggling(apiType);
+    try {
+      const { data, error } = await supabase.functions.invoke('toggle-api', {
+        body: { action: 'toggle', apiType }
+      });
+
+      if (error) throw error;
+
+      // Update local state
+      const settingKey = apiType === 'master' ? 'api_enabled' : `${apiType}_api_enabled`;
+      setSettings(prev => ({
+        ...prev,
+        [settingKey]: { 
+          ...prev[settingKey as keyof ApiSettings], 
+          enabled: data.enabled,
+          updated_by: userEmail,
+          updated_at: new Date().toISOString()
+        }
+      }));
+      
+      toast.success(data.message);
+    } catch (error) {
+      console.error('Error toggling API:', error);
+      toast.error('Failed to toggle API status');
+    } finally {
+      setIsToggling(null);
+    }
+  };
+
+  const handleSaveApiKey = async () => {
+    if (!newApiKey.trim()) {
+      toast.error('Please enter an API key');
+      return;
+    }
+
+    setIsSavingKey(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('toggle-api', {
+        body: { action: 'update_key', newApiKey: newApiKey.trim() }
+      });
+
+      if (error) throw error;
+
+      setSettings(prev => ({
+        ...prev,
+        anam_api_key: { 
+          key: `***${newApiKey.slice(-4)}`,
+          updated_by: userEmail,
+          updated_at: new Date().toISOString()
+        }
+      }));
+      
+      setNewApiKey('');
+      setLastKeyTest(null);
+      toast.success(data.message);
+    } catch (error) {
+      console.error('Error updating API key:', error);
+      toast.error('Failed to update API key');
+    } finally {
+      setIsSavingKey(false);
+    }
+  };
+
+  const handleTestApiKey = async () => {
+    setIsTestingKey(true);
+    try {
+      const { error } = await supabase.functions.invoke('anam-session', {
+        body: {
+          slideContext: {
+            id: 'api-key-check',
+            title: 'API Key Check',
+            keyPoints: ['Connectivity check'],
+            systemPromptContext: 'This is a connectivity test for the Anam API key.',
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      setLastKeyTest({ status: 'success', at: new Date().toISOString() });
+      toast.success('Anam API key verified successfully');
+    } catch (error) {
+      console.error('Error testing API key:', error);
+      setLastKeyTest({ status: 'error', at: new Date().toISOString() });
+      toast.error('Anam API key test failed');
+    } finally {
+      setIsTestingKey(false);
+    }
+  };
+
+  const masterEnabled = settings.api_enabled?.enabled ?? false;
+  const openaiEnabled = settings.openai_api_enabled?.enabled ?? false;
+  const anamEnabled = settings.anam_api_enabled?.enabled ?? false;
+  const currentAnamKey = settings.anam_api_key?.key || '';
+  const hasCustomKey = currentAnamKey && currentAnamKey !== 'Not set' && currentAnamKey.length > 0;
+  const keyOwner = hasCustomKey ? (settings.anam_api_key?.updated_by || 'unknown') : 'system default';
+  const keyUpdatedAt = settings.anam_api_key?.updated_at ? new Date(settings.anam_api_key.updated_at).toLocaleString() : '';
+
+  // Anam is usable if master ON + anam ON (we assume system fallback key exists if no custom key)
+  // Status shows: Active = master ON + anam ON, Inactive = otherwise
+  const anamUsable = masterEnabled && anamEnabled;
+
+  if (isLoading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="py-6">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Loading API controls...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Overall Status Summary */}
+      <Card className={`border-2 ${anamUsable ? 'bg-green-900/20 border-green-600' : 'bg-amber-900/20 border-amber-600'}`}>
+        <CardContent className="py-4">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${anamUsable ? 'bg-green-500/20' : 'bg-amber-500/20'}`}>
+              {anamUsable ? (
+                <Zap className="w-6 h-6 text-green-400" />
+              ) : (
+                <ZapOff className="w-6 h-6 text-amber-400" />
+              )}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className={`text-lg font-semibold ${anamUsable ? 'text-green-200' : 'text-amber-200'}`}>
+                  {anamUsable ? 'All Systems Operational' : 'Services Unavailable'}
+                </span>
+                <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${anamUsable ? 'bg-green-500/30 text-green-200' : 'bg-amber-500/30 text-amber-200'}`}>
+                  {anamUsable ? 'ONLINE' : 'OFFLINE'}
+                </div>
+              </div>
+              <p className={`text-sm mt-1 ${anamUsable ? 'text-green-300/70' : 'text-amber-300/70'}`}>
+                {anamUsable 
+                  ? hasCustomKey 
+                    ? `Avatar using custom key: ${currentAnamKey}`
+                    : 'Avatar using system default API key'
+                  : !masterEnabled 
+                    ? 'Master switch is OFF, so all APIs are blocked'
+                    : 'Anam API is disabled. Toggle it ON below'}
+              </p>
+              {anamUsable && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Active key owner: {keyOwner}{keyUpdatedAt ? ` • Updated ${keyUpdatedAt}` : ''}
+                </p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Master Switch - Owner Only */}
+      {isOwner && (
+        <Card className="bg-card border-red-700/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Power className="w-5 h-5 text-red-500" />
+              <CardTitle className="text-white text-lg">Master Switch</CardTitle>
+              <div className={`ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${masterEnabled ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}`}>
+                <div className={`w-2.5 h-2.5 rounded-full ${masterEnabled ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                {masterEnabled ? 'ON' : 'OFF'}
+              </div>
+            </div>
+            <CardDescription className="text-muted-foreground">
+              Owner-only: Kill switch for ALL API services. When OFF, all APIs are blocked and admins cannot add their keys.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {masterEnabled ? (
+                  <div className="flex items-center gap-2 text-green-400">
+                    <Zap className="w-5 h-5" />
+                    <span className="font-medium">All APIs Enabled</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-red-400">
+                    <ZapOff className="w-5 h-5" />
+                    <span className="font-medium">All APIs Disabled</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <Label htmlFor="master-toggle" className="text-foreground/80 text-sm">
+                  {isToggling === 'master' ? 'Switching...' : masterEnabled ? 'ON' : 'OFF'}
+                </Label>
+                <Switch
+                  id="master-toggle"
+                  checked={masterEnabled}
+                  onCheckedChange={() => handleToggle('master')}
+                  disabled={isToggling !== null}
+                  className="data-[state=checked]:bg-red-600"
+                />
+              </div>
+            </div>
+            {settings.api_enabled?.updated_by && (
+              <p className="text-xs text-muted-foreground/70 mt-2">
+                Last changed by: {settings.api_enabled.updated_by}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* OpenAI API Toggle - Owner Only */}
+      {isOwner && (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-500" />
+              <CardTitle className="text-white text-lg">OpenAI API (Text Mode)</CardTitle>
+              <div className={`ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${masterEnabled && openaiEnabled ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}`}>
+                <div className={`w-2.5 h-2.5 rounded-full ${masterEnabled && openaiEnabled ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                {masterEnabled && openaiEnabled ? 'ON' : 'OFF'}
+              </div>
+            </div>
+            <CardDescription className="text-muted-foreground">
+              Controls text-based chat functionality
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {openaiEnabled ? (
+                  <div className="flex items-center gap-2 text-green-400">
+                    <Zap className="w-5 h-5" />
+                    <span className="font-medium">Enabled</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-red-400">
+                    <ZapOff className="w-5 h-5" />
+                    <span className="font-medium">Disabled</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <Label htmlFor="openai-toggle" className="text-foreground/80 text-sm">
+                  {isToggling === 'openai' ? 'Switching...' : openaiEnabled ? 'ON' : 'OFF'}
+                </Label>
+                <Switch
+                  id="openai-toggle"
+                  checked={openaiEnabled}
+                  onCheckedChange={() => handleToggle('openai')}
+                  disabled={isToggling !== null || !masterEnabled}
+                  className="data-[state=checked]:bg-blue-600"
+                />
+              </div>
+            </div>
+            {!masterEnabled && (
+              <p className="text-xs text-yellow-400 mt-2 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                Master switch is OFF - this toggle is disabled
+              </p>
+            )}
+            {settings.openai_api_enabled?.updated_by && masterEnabled && (
+              <p className="text-xs text-muted-foreground/70 mt-2">
+                Last changed by: {settings.openai_api_enabled.updated_by}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Anam API Toggle - Available to all admins */}
+      <Card className={`bg-card border-border ${!masterEnabled && !isOwner ? 'opacity-60' : ''}`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-purple-500" />
+            <CardTitle className="text-white text-lg">Anam API (Avatar Mode)</CardTitle>
+              <div className={`ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${anamUsable ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}`}>
+                <div className={`w-2.5 h-2.5 rounded-full ${anamUsable ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                {anamUsable ? 'ON' : 'OFF'}
+              </div>
+          </div>
+          <CardDescription className="text-muted-foreground">
+            Controls avatar-based interaction functionality
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Master OFF warning for admins */}
+          {!masterEnabled && !isOwner && (
+            <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-3 flex items-start gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-yellow-200 text-sm font-medium">System is disabled by owner</p>
+                <p className="text-yellow-300/70 text-xs">All API controls are locked until the owner enables the master switch.</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {anamEnabled ? (
+                <div className="flex items-center gap-2 text-green-400">
+                  <Zap className="w-5 h-5" />
+                  <span className="font-medium">Enabled</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-red-400">
+                  <ZapOff className="w-5 h-5" />
+                  <span className="font-medium">Disabled</span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Label htmlFor="anam-toggle" className="text-foreground/80 text-sm">
+                {isToggling === 'anam' ? 'Switching...' : anamEnabled ? 'ON' : 'OFF'}
+              </Label>
+              <Switch
+                id="anam-toggle"
+                checked={anamEnabled}
+                onCheckedChange={() => handleToggle('anam')}
+                disabled={isToggling !== null || (!masterEnabled && !isOwner)}
+                className="data-[state=checked]:bg-purple-600"
+              />
+            </div>
+          </div>
+          {settings.anam_api_enabled?.updated_by && (
+            <p className="text-xs text-muted-foreground/70">
+              Last changed by: {settings.anam_api_enabled.updated_by}
+            </p>
+          )}
+
+          {/* API Key Section - All Admins can update, but blocked when master is OFF */}
+          <div className="pt-4 border-t border-border">
+            <div className="flex items-center gap-2 mb-3">
+              <Key className="w-4 h-4 text-yellow-500" />
+              <Label className="text-white text-sm font-medium">Anam API Key</Label>
+            </div>
+            
+            {/* Current key info */}
+            <div className="flex items-center gap-2 mb-3 text-sm flex-wrap">
+              <span className="text-muted-foreground">Current:</span>
+              <code className={`px-2 py-1 rounded ${hasCustomKey ? 'bg-background text-foreground/80' : 'bg-blue-900/50 text-blue-300'}`}>
+                {hasCustomKey ? currentAnamKey : 'System default'}
+              </code>
+              {settings.anam_api_key?.updated_by && hasCustomKey && (
+                <span className="text-xs text-muted-foreground/70">
+                  (by {settings.anam_api_key.updated_by}
+                  {settings.anam_api_key.updated_at && ` on ${new Date(settings.anam_api_key.updated_at).toLocaleDateString()}`})
+                </span>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground/70 mb-3">
+              Active key owner: {keyOwner}{keyUpdatedAt ? ` • Updated ${keyUpdatedAt}` : ''}
+            </div>
+
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  type={showApiKey ? 'text' : 'password'}
+                  value={newApiKey}
+                  onChange={(e) => setNewApiKey(e.target.value)}
+                  placeholder="Enter your Anam API key..."
+                  className="bg-background border-border text-white pr-10"
+                  disabled={!masterEnabled && !isOwner}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
+                  disabled={!masterEnabled && !isOwner}
+                >
+                  {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <Button
+                onClick={handleSaveApiKey}
+                disabled={isSavingKey || !newApiKey.trim() || (!masterEnabled && !isOwner)}
+                className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-muted"
+              >
+                {isSavingKey ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-1" />
+                    Save
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleTestApiKey}
+                disabled={isTestingKey || (!masterEnabled && !isOwner) || !anamEnabled}
+                className="border-border"
+              >
+                {isTestingKey ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  'Test'
+                )}
+              </Button>
+            </div>
+            {lastKeyTest && (
+              <p className={`text-xs mt-2 ${lastKeyTest.status === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                Last test: {lastKeyTest.status === 'success' ? 'Success' : 'Failed'} • {new Date(lastKeyTest.at).toLocaleString()}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground/70 mt-2">
+              {masterEnabled || isOwner 
+                ? 'Add your own Anam API key from your free account. This will override the system default key. Test creates a temporary session token.'
+                : 'API key changes are locked while the system is disabled.'}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default ApiToggle;
